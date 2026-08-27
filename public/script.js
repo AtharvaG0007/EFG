@@ -1,52 +1,156 @@
-// script.js — Firebase-safe version (NO imports)
+// script.js — EFG AI Finance Assistant
 
-// 🔹 Load config from window
-const { GEMINI_API_KEY, GEMINI_MODEL } = window.CONFIG;
+// ─────────────────────────────────────────────
+// 🔹 Config (loaded from config.js → window.CONFIG)
+// ─────────────────────────────────────────────
+const { API_BASE_URL } = window.CONFIG || {};
 
-// 🔹 DOM elements
-const askBtn = document.getElementById("askBtn");
+// ─────────────────────────────────────────────
+// 🔹 DOM Elements
+// ─────────────────────────────────────────────
+const askBtn       = document.getElementById("askBtn");
 const questionInput = document.getElementById("question");
-const answerBox = document.getElementById("answer");
+const answerBox    = document.getElementById("answer");
 
-// 🔹 Gemini API call
-async function askGemini(question) {
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: question }] }]
-        })
-      }
-    );
+// ─────────────────────────────────────────────
+// 🔹 Input length limits
+// ─────────────────────────────────────────────
+const MIN_LENGTH = 3;
+const MAX_LENGTH = 500;
+let isSubmitting = false;
 
-    const data = await response.json();
+// ─────────────────────────────────────────────
+// 🔹 UI helpers
+// ─────────────────────────────────────────────
+function setLoading(isLoading) {
+  askBtn.disabled = isLoading;
+  askBtn.textContent = isLoading ? "Thinking…" : "Ask AI";
+  questionInput.disabled = isLoading;
+}
 
-    if (!data.candidates || !data.candidates[0]) {
-      return "No response from AI. Try again.";
-    }
+function showMessage(text, type = "info") {
+  answerBox.className = "answer-box" + (type !== "info" ? " answer-" + type : "");
+  answerBox.textContent = text;
+}
 
-    return data.candidates[0].content.parts[0].text;
-  } catch (err) {
-    console.error(err);
-    return "Error connecting to AI.";
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderMarkdown(text) {
+  const safeText = escapeHtml(text);
+  answerBox.className = "answer-box";
+
+  if (window.marked) {
+    answerBox.innerHTML = window.marked.parse(safeText);
+  } else {
+    answerBox.innerHTML = safeText.replace(/\n/g, "<br>");
   }
 }
 
-// 🔹 Button click
-askBtn.addEventListener("click", async () => {
-  const question = questionInput.value.trim();
+// ─────────────────────────────────────────────
+// 🔹 Gemini API call via Firebase Function
+// ─────────────────────────────────────────────
+async function askGemini(question) {
+  if (!API_BASE_URL) {
+    throw new Error("AI service is not configured.");
+  }
 
-  if (!question) {
-    answerBox.innerText = "Please enter a question.";
+  const response = await fetch(API_BASE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question })
+  });
+
+  let errorMessage = "The AI service is currently unavailable. Please try again.";
+  let data = null;
+
+  try {
+    data = await response.json();
+  } catch (_) {
+    data = null;
+  }
+
+  if (!response.ok) {
+    errorMessage = data && data.error ? data.error : `${errorMessage} (HTTP ${response.status})`;
+    throw new Error(errorMessage);
+  }
+
+  if (!data || typeof data.answer !== "string" || !data.answer.trim()) {
+    throw new Error("The AI response was empty. Please try again.");
+  }
+
+  return data.answer.trim();
+}
+
+// ─────────────────────────────────────────────
+// 🔹 Submit handler
+// ─────────────────────────────────────────────
+async function handleSubmit() {
+  if (isSubmitting) {
     return;
   }
 
-  answerBox.innerText = "Thinking... 💭";
-  const answer = await askGemini(question);
-  answerBox.innerText = answer;
+  const question = questionInput.value.trim();
+
+  if (!question) {
+    showMessage("Please enter a finance question.", "error");
+    questionInput.focus();
+    return;
+  }
+
+  if (question.length < MIN_LENGTH) {
+    showMessage("Question is too short. Please be more specific.", "error");
+    questionInput.focus();
+    return;
+  }
+
+  if (question.length > MAX_LENGTH) {
+    showMessage(`Question is too long (${question.length}/${MAX_LENGTH} characters). Please shorten it.`, "error");
+    questionInput.focus();
+    return;
+  }
+
+  isSubmitting = true;
+  setLoading(true);
+  showMessage("Thinking… 💭");
+
+  try {
+    const answer = await askGemini(question);
+    renderMarkdown(answer);
+  } catch (err) {
+    console.error("[EFG] Gemini error:", err);
+    showMessage("⚠️ " + (err.message || "Error connecting to AI. Please try again."), "error");
+  } finally {
+    isSubmitting = false;
+    setLoading(false);
+  }
+}
+
+// ─────────────────────────────────────────────
+// 🔹 Event listeners
+// ─────────────────────────────────────────────
+askBtn.addEventListener("click", handleSubmit);
+
+questionInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    handleSubmit();
+  }
+});
+
+document.querySelectorAll(".cat").forEach((card) => {
+  card.addEventListener("click", () => {
+    const topic = card.dataset.topic;
+    if (topic) {
+      questionInput.value = topic;
+      questionInput.focus();
+      questionInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  });
 });

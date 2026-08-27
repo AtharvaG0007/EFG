@@ -1,19 +1,19 @@
 {
   "name": "functions",
-  "description": "Cloud Functions for Firebase",
+  "description": "Cloud Functions for Firebase — EFG Gemini AI proxy",
   "scripts": {
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
+    "test": "node --test",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
   "engines": {
-    "node": "24"
+    "node": "20"
   },
   "main": "index.js",
   "dependencies": {
-    "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.0"
   },
   "devDependencies": {

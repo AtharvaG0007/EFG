@@ -3,39 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Easy Finance Guide</title>
+
+  <!-- SEO -->
+  <title>EFG — Easy Finance Guide | AI-Powered Financial Education</title>
+  <meta name="description" content="EFG is an AI-powered financial education assistant for students. Get instant, plain-language answers to finance, investing, and budgeting questions — powered by Google Gemini." />
+  <meta name="theme-color" content="#020617" />
+
+  <!-- Favicon (inline SVG data URI — no separate file needed) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💹</text></svg>" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Marked.js — Markdown renderer for AI responses -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <main class="page">
-    <section class="glass-card">
-      <h1>Ask EFG AI</h1>
-      <p class="subtitle">Get instant answers to finance questions</p>
+  <main class="page" role="main">
 
-      <div class="input-row">
+    <!-- ── Hero card ── -->
+    <section class="glass-card" aria-labelledby="app-heading">
+
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">💹</span>
+        <div>
+          <h1 id="app-heading">Ask EFG AI</h1>
+          <p class="subtitle">Instant, student-friendly answers to finance questions</p>
+        </div>
+      </div>
+
+      <!-- ── Input row ── -->
+      <div class="input-row" role="search">
+        <label for="question" class="sr-only">Finance question</label>
         <input
           type="text"
           id="question"
+          name="question"
           placeholder="e.g. What is the difference between stocks and bonds?"
+          aria-label="Enter your finance question"
+          autocomplete="off"
+          spellcheck="true"
+          maxlength="500"
         />
-        <button id="askBtn">Ask AI</button>
+        <button id="askBtn" aria-label="Submit your question to EFG AI">Ask AI</button>
       </div>
 
-      <div id="answer" class="answer-box"></div>
+      <!-- ── Answer area ── -->
+      <div
+        id="answer"
+        class="answer-box"
+        role="region"
+        aria-live="polite"
+        aria-label="AI response"
+      ></div>
+
+      <!-- ── Disclaimer ── -->
+      <aside class="disclaimer" role="note" aria-label="Educational disclaimer">
+        <span aria-hidden="true">⚠️</span>
+        EFG provides <strong>educational information only</strong> — not personalised financial, legal, or investment advice.
+        Always consult a qualified financial advisor before making financial decisions.
+      </aside>
+
     </section>
 
-    <section class="categories">
-      <div class="cat">📈 Trading Basics</div>
-      <div class="cat">📊 Securities</div>
-      <div class="cat">💰 Student Budgeting</div>
-      <div class="cat">🚀 Grow Your Money</div>
+    <!-- ── Category chips ── -->
+    <section class="categories" aria-label="Quick finance topics">
+      <h2 class="sr-only">Quick topic shortcuts</h2>
+
+      <button
+        class="cat"
+        data-topic="What are the basics of stock trading and how do I get started?"
+        aria-label="Trading Basics — click to pre-fill"
+      >📈 Trading Basics</button>
+
+      <button
+        class="cat"
+        data-topic="What is the difference between stocks, bonds, and ETFs?"
+        aria-label="Securities — click to pre-fill"
+      >📊 Securities</button>
+
+      <button
+        class="cat"
+        data-topic="How should a student create a monthly budget and manage expenses?"
+        aria-label="Student Budgeting — click to pre-fill"
+      >💰 Student Budgeting</button>
+
+      <button
+        class="cat"
+        data-topic="What are the best ways for a student to start growing their money?"
+        aria-label="Grow Your Money — click to pre-fill"
+      >🚀 Grow Your Money</button>
     </section>
 
-    <footer>
-      Powered by Google Gemini AI<br />
-      EFG © 2026
+    <footer role="contentinfo">
+      Powered by <strong>Google Gemini AI</strong><br />
+      EFG &copy; 2026 &mdash; For educational use only
     </footer>
+
   </main>
 
   <script src="config.js"></script>
