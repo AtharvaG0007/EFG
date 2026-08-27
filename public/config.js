@@ -1,17 +1,7 @@
-// config.js
-// Central configuration loader for Easy Finance Guide (EFG)
-// The frontend never stores API secrets. It calls the secure Firebase Function.
+﻿// EFG frontend configuration
+// Gemini API key is NEVER stored here.
 
-(function () {
-  const defaultConfig = {
-    API_BASE_URL: "https://us-central1-efg-mvp-3e91a.cloudfunctions.net/askGemini"
-  };
+window.CONFIG = {
+    API_BASE_URL: "/api/askGemini"
+};
 
-  const runtimeOverride =
-    typeof window !== "undefined" && window.__EFG_CONFIG__ ? window.__EFG_CONFIG__ : {};
-
-  window.CONFIG = {
-    ...defaultConfig,
-    ...runtimeOverride
-  };
-})();
